@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info">
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d [%t] %p %C:%L - %m%n"/>
+    </Console>
+    <RollingFile name="RootFile" fileName="logs/cdr-parser.log" filePattern="logs/cdr-parser-%d{yyyy-MM-dd}-%i.log.gz">
+      <PatternLayout pattern="%d [%t] %p %C:%L - %m%n"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="200 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="2000" fileIndex="max"/>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Root level="info">
+      <AppenderRef ref="Console"/>
+    </Root>
+    <logger name="com.ericsson" level="info" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="RootFile"/>
+    </logger>
+  </Loggers>
+</Configuration>

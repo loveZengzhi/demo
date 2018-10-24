@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>xumi.demo</groupId>
+    <artifactId>jsw-iov</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <dependencies>
+        <!-- Logging -->
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jul</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jcl</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-web</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>jfinal</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.31</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.0.29</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.guoyukun.jdbc</groupId>
+            <artifactId>oracle-ojdbc6</artifactId>
+            <version>11.2.0.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>jfinal</artifactId>
+            <version>2.2</version>
+        </dependency>
+        <!--CSV-->
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.3</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.properties</exclude>
+                        <exclude>**/*.sqlite</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>tanukisoft</groupId>
+                                    <artifactId>wrapper-delta-pack</artifactId>
+                                    <version>3.5.30</version>
+                                    <type>tar.gz</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <profiles>
+        <!-- FIXME 每个需要打包成JSW的都定义为profile 可按需选择执行 -->
+        <profile>
+            <!-- FIXME id命名尽量简明 便于区分 -->
+            <id>make-cdrparser-bin</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- 1. 使用appassembler-maven-plugin生成JSW配置 -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>appassembler-maven-plugin</artifactId>
+                        <version>1.10</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>generate-daemons</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <externalDeltaPackDirectory>${project.build.directory}/dependency/wrapper-delta-pack-3.5.30</externalDeltaPackDirectory>
+                            <target>target</target>
+                            <repositoryLayout>flat</repositoryLayout>
+                            <generateRepository>false</generateRepository>
+                            <useWildcardClassPath>true</useWildcardClassPath>
+                            <logsDirectory>logs</logsDirectory>
+                            <daemons>
+                                <daemon>
+                                    <id>${project.artifactId}</id>
+                                    <!-- FIXME 指定此工程的主main方法所在的启动类 -->
+                                    <mainClass>cn.xumi.iov.Launcher</mainClass>
+                                    <platforms>
+                                        <platform>jsw</platform>
+                                    </platforms>
+                                    <generatorConfigurations>
+                                        <generatorConfiguration>
+                                            <generator>jsw</generator>
+                                            <includes>
+                                                <include>linux-x86-64</include>
+                                            </includes>
+                                            <configuration>
+                                                <property>
+                                                    <name>wrapper.logfile</name>
+                                                    <value>logs/wrapper.log</value>
+                                                </property>
+                                                <property>
+                                                    <name>run.as.user.envvar</name>
+                                                    <value>root</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.logfile.loglevel</name>
+                                                    <value>DEBUG</value>
+                                                </property>
+                                                <property>
+                                                    <name>wrapper.startup.timeout</name>
+                                                    <value>600</value>
+                                                </property>
+                                            </configuration>
+                                        </generatorConfiguration>
+                                    </generatorConfigurations>
+                                    <jvmSettings>
+                                        <initialMemorySize>256M</initialMemorySize>
+                                        <maxMemorySize>1024M</maxMemorySize>
+                                        <!-- 此处通过JSW设置JVM系统属性 代码中可通过System.getProperty(String key)获取 -->
+                                        <systemProperties>
+                                            <!-- FIXME 按照log4j官网的说明 可通过定义系统属性的方式指定log4j外置配置文件的路径 -->
+                                            <!-- FIXME log4j1.x版 key定义为 log4j.configuration -->
+                                            <!-- FIXME log4j2.x版 key更改为 log4j.configurationFile -->
+                                            <!--<systemProperty>log4j.configuration=etc/log4j.properties</systemProperty>-->
+                                            <systemProperty>log4j.configurationFile=etc/log4j2.xml</systemProperty>
+                                            <!-- FIXME 项目可自定义系统属性指定主配置文件的路径 -->
+                                            <systemProperty>global.configurationFile=etc/config.properties</systemProperty>
+                                            <systemProperty>druid.mysql.usePingMethod=false</systemProperty>
+                                        </systemProperties>
+                                    </jvmSettings>
+                                </daemon>
+                            </daemons>
+                        </configuration>
+                    </plugin>
+
+                    <!-- 1. 使用maven-assembly-plugin打包成可部署压缩包 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.4</version>
+                        <configuration>
+                            <descriptors>
+                                <!-- 所引入打包配置 具体的文件是spv-assembly.xml -->
+                                <descriptor>spv-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <!-- 公司通用的打包配置 已通过maven构件的方式提供 此处进行引入 -->
+                       <!-- <dependencies>
+                            <dependency>
+                                <groupId>cn.superv</groupId>
+                                <artifactId>spv-assembly</artifactId>
+                                <version>1.1.3</version>
+                            </dependency>
+                        </dependencies>-->
+                        <executions>
+                            <execution>
+                                <id>make-assembly</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
